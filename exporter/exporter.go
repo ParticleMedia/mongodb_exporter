@@ -96,21 +96,21 @@ func New(opts *Opts) *Exporter {
 		opts.Logger = logrus.New()
 	}
 
-	ctx := context.Background()
-
 	exp := &Exporter{
 		logger:                opts.Logger,
 		opts:                  opts,
 		lock:                  &sync.Mutex{},
 		totalCollectionsCount: -1, // Not calculated yet. waiting the db connection.
 	}
+
 	// Try initial connect. Connection will be retried with every scrape.
-	go func() {
-		_, err := exp.getClient(ctx)
-		if err != nil {
-			exp.logger.Errorf("Cannot connect to MongoDB: %v", err)
-		}
-	}()
+	// ctx := context.Background()
+	// go func() {
+	// 	_, err := exp.getClient(ctx)
+	// 	if err != nil {
+	// 		exp.logger.Errorf("Cannot connect to MongoDB: %v", err)
+	// 	}
+	// }()
 
 	return exp
 }

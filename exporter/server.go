@@ -42,14 +42,14 @@ type ServerOpts struct {
 func RunWebServer(opts *ServerOpts, exporters []*Exporter, log *logrus.Logger) {
 	mux := http.DefaultServeMux
 
-	if len(exporters) == 0 {
-		panic("No exporters were built. You must specify --mongodb.uri command argument or MONGODB_URI environment variable")
-	}
+	// if len(exporters) == 0 {
+	// 	panic("No exporters were built. You must specify --mongodb.uri command argument or MONGODB_URI environment variable")
+	// }
 
 	serverMap := buildServerMap(exporters, log)
 
-	defaultExporter := exporters[0]
-	mux.Handle(opts.Path, defaultExporter.Handler())
+	// defaultExporter := exporters[0]
+	// mux.Handle(opts.Path, defaultExporter.Handler())
 	mux.HandleFunc(opts.MultiTargetPath, multiTargetHandler(serverMap))
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -89,6 +89,21 @@ func multiTargetHandler(serverMap ServerMap) http.HandlerFunc {
 			if uri, err := url.Parse(targetHost); err == nil {
 				if e, ok := serverMap[uri.Host]; ok {
 					e.ServeHTTP(w, r)
+					return
+				} else {
+					New(&Opts{
+						URI:                           targetHost,
+						EnableDiagnosticData:          false,
+						EnableReplicasetStatus:        false,
+						EnableCurrentopMetrics:        false,
+						EnableTopMetrics:              false,
+						EnableDBStats:                 false,
+						EnableDBStatsFreeStorage:      false,
+						EnableIndexStats:              false,
+						EnableCollStats:               false,
+						EnableProfile:                 false,
+						EnableOverrideDescendingIndex: false,
+					}).Handler().ServeHTTP(w, r)
 					return
 				}
 			}
